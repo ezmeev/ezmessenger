@@ -3,13 +3,12 @@ package ez;
 import java.io.IOException;
 
 import ez.connection.client.ClientConnectionsListener;
-import ez.connection.client.ClientConnectionsRegister;
+import ez.connection.client.ClientsRegistry;
+import ez.connection.queue.QueueServer;
 import ez.connection.queue.messages.ClientConnectionMessageHandler;
-import ez.connection.queue.messages.ClientConnectionMessageQueue;
 import ez.connection.queue.registration.ClientConnectionRegistrationHandler;
-import ez.connection.queue.registration.ClientConnectionRegistrationQueue;
 import ez.connection.server.ClientConnectionsServer;
-import ez.messaging.data.MessageType;
+import ez.messaging.data.transport.MessageType;
 import ez.messaging.handlers.GetHistoryMessageHandler;
 import ez.messaging.handlers.MessageHandlers;
 import ez.messaging.handlers.TextMessageHandler;
@@ -29,39 +28,31 @@ public class EZMessenger {
 
     private ClientConnectionRegistrationHandler registrationsHandler;
 
+    private QueueServer queueServer;
+
+    private ClientsRegistry connections;
+
+    private MessageRouter messageRouter;
+
+    private EZMessenger(QueueServer queueServer, ClientsRegistry connectionsRegister, MessageRouter messageRouter) {
+        this.queueServer = queueServer;
+        this.connections = connectionsRegister;
+        this.messageRouter = messageRouter;
+    }
+
     public void start() {
         try {
 
-            ClientConnectionsRegister connections = new ClientConnectionsRegister();
-            ClientConnectionMessageQueue messagesQueue = new ClientConnectionMessageQueue();
-            ClientConnectionRegistrationQueue registrationsQueue = new ClientConnectionRegistrationQueue();
-
-            UserService userMessageService = new UserService();
-            MessagePassingService messagePassingService = new MessagePassingService(connections);
-            MessageStoringService messageStoringService = new MessageStoringService();
-
-            GetHistoryMessageHandler getHistoryMessageHandler = new GetHistoryMessageHandler(userMessageService,
-                messagePassingService, messageStoringService);
-
-            TextMessageHandler textMessageHandler = new TextMessageHandler(userMessageService,
-                messagePassingService, messageStoringService);
-
-            MessageHandlers handlers = new MessageHandlers();
-            handlers.addHandlerFor(MessageType.TextMessage, textMessageHandler);
-            handlers.addHandlerFor(MessageType.GetHistoryMessage, getHistoryMessageHandler);
-
-            MessageRouter router = new MessageRouter(handlers);
-
-            server = new ClientConnectionsServer(registrationsQueue);
+            server = new ClientConnectionsServer(queueServer.getRegistrationsQueue());
             server.start();
 
-            listener = new ClientConnectionsListener(messagesQueue, connections);
+            listener = new ClientConnectionsListener(queueServer.getMessagesQueue(), connections);
             listener.start();
 
-            messagesHandler = new ClientConnectionMessageHandler(messagesQueue, router);
+            messagesHandler = new ClientConnectionMessageHandler(queueServer.getMessagesQueue(), messageRouter);
             messagesHandler.start();
 
-            registrationsHandler = new ClientConnectionRegistrationHandler(registrationsQueue, connections);
+            registrationsHandler = new ClientConnectionRegistrationHandler(queueServer.getRegistrationsQueue(), connections);
             registrationsHandler.start();
 
         } catch (IOException e) {
@@ -85,6 +76,35 @@ public class EZMessenger {
         } catch (InterruptedException e) {
             e.printStackTrace();
             // TODO
+        }
+    }
+
+    public static class Configurator {
+
+        private Configurator() {
+        }
+
+        public static EZMessenger configureDefault() {
+
+            var clientsRegistry = new ClientsRegistry();
+            var queueServer = new QueueServer();
+
+            var userService = new UserService();
+            var messagePassingService = new MessagePassingService(clientsRegistry);
+            var messageStoringService = new MessageStoringService();
+
+            var getHistoryMessageHandler = new GetHistoryMessageHandler(userService,
+                messagePassingService, messageStoringService);
+
+            var textMessageHandler = new TextMessageHandler(userService, messagePassingService, messageStoringService);
+
+            var messageHandlers = new MessageHandlers();
+            messageHandlers.addHandlerFor(MessageType.TextMessage, textMessageHandler);
+            messageHandlers.addHandlerFor(MessageType.GetHistoryMessage, getHistoryMessageHandler);
+
+            var messageRouter = new MessageRouter(messageHandlers);
+
+            return new EZMessenger(queueServer, clientsRegistry, messageRouter);
         }
     }
 }

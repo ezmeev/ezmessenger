@@ -28,16 +28,22 @@ public class ClientConnectionMessageHandler {
     public void start() {
         handlerThread = new Thread(() -> {
             while (!stopped) {
-                ClientConnection connection = queue.peek();
-                if (connection != null) {
-                    ConnectionMessage message = connectionDataReader.readMessage(connection);
-                    if (message != null) {
-                        try {
-                            handler.route(message);
-                        }catch (Exception e){
-                            e.printStackTrace();
-                            // TODO
+                if (queue.size() > 0) {
+                    ClientConnection connection = queue.peek();
+                    if (connection != null) {
+                        ConnectionMessage message = connectionDataReader.readMessage(connection);
+                        if (message != null) {
+                            try {
+                                handler.route(message);
+                                queue.pop();
+                                connection.markUnqueued();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                // TODO
+                            }
                         }
+                    } else {
+                        Logger.log("[MESSAGE_HANDLER]: null connection found");
                         queue.pop();
                     }
                 }

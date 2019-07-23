@@ -1,6 +1,7 @@
 package ez.messaging.data;
 
 public class User {
+
     private String identity;
 
     public User(String identity) {

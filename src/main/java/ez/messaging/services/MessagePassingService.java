@@ -5,19 +5,19 @@ import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import ez.connection.client.ClientConnection;
-import ez.connection.client.ClientConnectionsRegister;
+import ez.connection.client.ClientsRegistry;
 import ez.connection.data.ConnectionMessage;
-import ez.messaging.data.Message;
-import ez.messaging.data.MessageType;
+import ez.messaging.data.transport.Message;
+import ez.messaging.data.transport.MessageType;
 import ez.messaging.data.User;
 import ez.util.JsonConvert;
 import ez.util.Logger;
 
 public class MessagePassingService {
 
-    private ClientConnectionsRegister connections;
+    private ClientsRegistry connections;
 
-    public MessagePassingService(ClientConnectionsRegister connections) {
+    public MessagePassingService(ClientsRegistry connections) {
 
         this.connections = connections;
     }
@@ -27,8 +27,8 @@ public class MessagePassingService {
 
             Message acknowledgeMessage = new Message();
             acknowledgeMessage.setReceiverId(sender.getIdentity());
-            acknowledgeMessage.setType(MessageType.AckByServer);
-            acknowledgeMessage.setData(message.getMessageId());
+            acknowledgeMessage.setType(MessageType.AckByServerMessage);
+//            acknowledgeMessage.setData(message.getMessageId());
 
             sendMessage(sender.getIdentity(), acknowledgeMessage);
 
@@ -38,7 +38,7 @@ public class MessagePassingService {
         }
     }
 
-    public void tryDeliverMessage(User receiver, Message message) {
+    public void sendMessageTo(User receiver, Message message) {
         try {
             sendMessage(receiver.getIdentity(), message);
         } catch (JsonProcessingException e) {

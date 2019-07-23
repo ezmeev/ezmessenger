@@ -23,4 +23,8 @@ public class ClientConnectionMessageQueue {
     public ClientConnection pop() {
         return connectionMessagesQueue.pop();
     }
+
+    public int size() {
+        return connectionMessagesQueue.size();
+    }
 }

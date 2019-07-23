@@ -1,6 +1,6 @@
 package ez.messaging.handlers;
 
-import ez.messaging.data.Message;
+import ez.messaging.data.transport.Message;
 
 public interface MessageHandler {
 

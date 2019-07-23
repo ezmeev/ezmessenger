@@ -10,9 +10,7 @@ Bla-bla-bla intent bla-bla-bla reliable bla-bla-bla scalable bla-bla-bla will be
 
 ##### [Hello] fields:
 - "senderId" - client identity, received earlier and known to server
-- "lastMessageId" - ID of the last received message
-- "historyDepth" - number of messages prior to "lastMessageId"
-- "type" - InitMessage
+- "type" - Hello
 ###### example:
 ```
 {
@@ -25,14 +23,14 @@ Bla-bla-bla intent bla-bla-bla reliable bla-bla-bla scalable bla-bla-bla will be
 ```
 
 ##### [GetHistory] fields:
+- "lastMessageId" - ID of the last received message
+- "historyDepth" - number of messages prior to "lastMessageId"
 - "receiverId" - client identity
-- "newMessages" - array of messages, which was not yet delivered to client
-- "history" - array of messages, should contain up to "historyDepth" messages prior to "lastMessageId"
-- "type" - SyncMessage
+- "type" - GetHistoryMessage
 ###### example:
 ```
 {
-  "type": "LatestHistory",
+  "type": "GetHistoryMessage",
   "data": null,
   "senderId": "1_1",
   "receiverId": null,
@@ -44,11 +42,11 @@ Bla-bla-bla intent bla-bla-bla reliable bla-bla-bla scalable bla-bla-bla will be
 - "receiverId" - client identity
 - "newMessages" - array of messages, which was not yet delivered to client
 - "history" - array of messages, should contain up to "historyDepth" messages prior to "lastMessageId"
-- "type" - SyncMessage
+- "type" - HistoryMessage
 ###### example:
 ```
 {
-  "type": "LatestHistory",
+  "type": "HistoryMessage",
   "data": null,
   "senderId": "1_1",
   "receiverId": null,

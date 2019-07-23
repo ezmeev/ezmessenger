@@ -1,4 +1,4 @@
-package ez.messaging.data;
+package ez.messaging.data.transport;
 
 public enum MessageType {
 
@@ -11,9 +11,9 @@ public enum MessageType {
     StopTyping,
 
     TextMessage,
-    AckByServer,
+    AckByServerMessage,
     Received,
-    AckByReceiver,
+    AckByReceiverMessage,
     Read,
 
 //    InitMessage,

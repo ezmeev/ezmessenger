@@ -5,9 +5,9 @@ import java.io.IOException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ez.connection.client.ClientConnection;
 import ez.connection.client.ClientConnectionMessageReader;
-import ez.connection.client.ClientConnectionsRegister;
+import ez.connection.client.ClientsRegistry;
 import ez.connection.data.ConnectionMessage;
-import ez.messaging.data.Message;
+import ez.messaging.data.transport.Message;
 import ez.util.Logger;
 
 public class ClientConnectionRegistrationHandler {
@@ -16,7 +16,7 @@ public class ClientConnectionRegistrationHandler {
 
     private final ClientConnectionRegistrationQueue queue;
 
-    private ClientConnectionsRegister connectionsRegister;
+    private ClientsRegistry connectionsRegister;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -24,7 +24,7 @@ public class ClientConnectionRegistrationHandler {
 
     private volatile boolean stopped = false;
 
-    public ClientConnectionRegistrationHandler(ClientConnectionRegistrationQueue queue, ClientConnectionsRegister connectionsRegister) {
+    public ClientConnectionRegistrationHandler(ClientConnectionRegistrationQueue queue, ClientsRegistry connectionsRegister) {
         this.queue = queue;
         this.connectionsRegister = connectionsRegister;
         this.connectionDataReader = new ClientConnectionMessageReader();

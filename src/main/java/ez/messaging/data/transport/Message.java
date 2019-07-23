@@ -1,10 +1,16 @@
-package ez.messaging.data;
+package ez.messaging.data.transport;
+
+import java.nio.charset.StandardCharsets;
+
+import ez.messaging.data.transport.payload.GetHistoryMessagePayload;
+import ez.messaging.data.transport.payload.TextMessagePayload;
+import ez.messaging.helpers.MessagePayloadHelper;
 
 public class Message {
 
     private MessageType type;
 
-    private String data;
+    private byte[] data;
 
     private String senderId;
 
@@ -20,11 +26,11 @@ public class Message {
         this.type = type;
     }
 
-    public String getData() {
+    public byte[] getData() {
         return data;
     }
 
-    public void setData(String data) {
+    public void setData(byte[] data) {
         this.data = data;
     }
 
@@ -55,10 +61,15 @@ public class Message {
         return message;
     }
 
-    public static Message createGetHistoryMessage(String senderId) {
+    public static Message createGetHistoryMessage(String senderId, String lastMessageId) {
+        var payload = new GetHistoryMessagePayload();
+        payload.setHistoryDepth(10);
+        payload.setLastMessageId(lastMessageId);
+
         Message message = new Message();
         message.setType(MessageType.GetHistoryMessage);
         message.setSenderId(senderId);
+        message.setData(MessagePayloadHelper.toBytes(payload));
         return message;
     }
 
@@ -66,16 +77,19 @@ public class Message {
         Message message = new Message();
         message.setType(MessageType.HistoryMessage);
         message.setSenderId(senderId);
-        message.setData(history);
+        message.setData(history.getBytes(StandardCharsets.UTF_8));
         return message;
     }
 
-    public static Message createTextMessage(String senderId, String receiverId, String payload) {
+    public static Message createTextMessage(String senderId, String receiverId, String text) {
+        var payload = new TextMessagePayload();
+        payload.setText(text);
+
         Message message = new Message();
         message.setType(MessageType.TextMessage);
         message.setSenderId(senderId);
         message.setReceiverId(receiverId);
-        message.setData(payload);
+        message.setData(MessagePayloadHelper.toBytes(payload));
         return message;
     }
 }

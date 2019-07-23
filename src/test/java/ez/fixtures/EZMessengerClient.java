@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ez.messaging.data.Message;
+import ez.messaging.data.transport.Message;
 import ez.util.JsonConvert;
 import ez.util.Logger;
 

@@ -1,6 +1,6 @@
 package ez.messaging.handlers;
 
-import ez.messaging.data.Message;
+import ez.messaging.data.transport.Message;
 import ez.messaging.data.User;
 import ez.messaging.services.MessagePassingService;
 import ez.messaging.services.MessageStoringService;
@@ -34,6 +34,6 @@ public class TextMessageHandler implements MessageHandler {
         messageStoringService.storeMessage(receiver, message);
 
         messagePassingService.tryAcknowledgeMessage(sender, message);
-        messagePassingService.tryDeliverMessage(receiver, message);
+        messagePassingService.sendMessageTo(receiver, message);
     }
 }

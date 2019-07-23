@@ -1,14 +1,13 @@
 package ez.connection.client;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ClientConnectionsRegister {
+public class ClientsRegistry {
 
     private Map<String, ClientConnection> clientConnections;
 
-    public ClientConnectionsRegister() {
+    public ClientsRegistry() {
         this.clientConnections = new ConcurrentHashMap<>();
     }
 

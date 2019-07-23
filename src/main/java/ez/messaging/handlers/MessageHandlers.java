@@ -3,7 +3,7 @@ package ez.messaging.handlers;
 import java.util.HashMap;
 import java.util.Map;
 
-import ez.messaging.data.MessageType;
+import ez.messaging.data.transport.MessageType;
 
 public class MessageHandlers {
 

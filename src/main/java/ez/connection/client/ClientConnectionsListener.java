@@ -9,7 +9,7 @@ public class ClientConnectionsListener {
 
     private ClientConnectionMessageQueue messageReadingQueue;
 
-    private ClientConnectionsRegister connectionsRegister;
+    private ClientsRegistry connectionsRegister;
 
     private volatile Thread listenerThread;
 
@@ -17,7 +17,7 @@ public class ClientConnectionsListener {
 
     public ClientConnectionsListener(
         ClientConnectionMessageQueue messageReadingQueue,
-        ClientConnectionsRegister connectionsRegister
+        ClientsRegistry connectionsRegister
     ) {
         this.messageReadingQueue = messageReadingQueue;
         this.connectionsRegister = connectionsRegister;
@@ -30,10 +30,19 @@ public class ClientConnectionsListener {
                 Map<String, ClientConnection> connections = connectionsRegister.getSnapshot();
 
                 for (ClientConnection connection : connections.values()) {
-                    if (connection.newDataAvailable()) {
+
+                    if (connection.newDataAvailable() && !connection.isQueued()) {
+                        Logger.log("[CONNECTIONS_LISTENER] new data available - queueing");
                         messageReadingQueue.add(connection);
+                        connection.markQueued();
                     }
                 }
+
+//                try {
+//                    Thread.sleep(500);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
             }
         });
 
