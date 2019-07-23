@@ -1,21 +1,22 @@
-package ez.messaging.services;
+package ez.messaging.handlers;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ez.connection.data.ConnectionMessage;
 import ez.messaging.data.transport.Message;
-import ez.messaging.handlers.MessageHandler;
-import ez.messaging.handlers.MessageHandlers;
+import ez.messaging.data.transport.MessageType;
 
 public class MessageRouter {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private MessageHandlers messageHandlers;
+    private Map<MessageType, MessageHandler> messageHandlers;
 
-    public MessageRouter(MessageHandlers messageHandlers) {
-        this.messageHandlers = messageHandlers;
+    public MessageRouter() {
+        this.messageHandlers = new HashMap<>();
     }
 
     public void route(ConnectionMessage message) {
@@ -26,7 +27,7 @@ public class MessageRouter {
 
             Message parsedMessage = objectMapper.readValue(messageData, Message.class);
 
-            MessageHandler handler = messageHandlers.getHandler(parsedMessage.getType());
+            MessageHandler handler = messageHandlers.get(parsedMessage.getType());
 
             handler.handleMessage(parsedMessage);
 
@@ -34,5 +35,9 @@ public class MessageRouter {
             e.printStackTrace();
             // TODO
         }
+    }
+
+    public void addHandlerFor(MessageType messageType, MessageHandler messageHandler) {
+        this.messageHandlers.put(messageType, messageHandler);
     }
 }

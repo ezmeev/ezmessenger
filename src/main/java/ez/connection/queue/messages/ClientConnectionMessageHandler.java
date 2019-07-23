@@ -3,7 +3,7 @@ package ez.connection.queue.messages;
 import ez.connection.client.ClientConnection;
 import ez.connection.client.ClientConnectionMessageReader;
 import ez.connection.data.ConnectionMessage;
-import ez.messaging.services.MessageRouter;
+import ez.messaging.handlers.MessageRouter;
 import ez.util.Logger;
 
 public class ClientConnectionMessageHandler {

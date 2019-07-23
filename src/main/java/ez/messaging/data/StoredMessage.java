@@ -8,6 +8,8 @@ public class StoredMessage {
 
     private long timestamp;
 
+    private String messgeId;
+
     public String getText() {
         return text;
     }
@@ -22,5 +24,13 @@ public class StoredMessage {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getMessgeId() {
+        return messgeId;
+    }
+
+    public void setMessgeId(String messgeId) {
+        this.messgeId = messgeId;
     }
 }

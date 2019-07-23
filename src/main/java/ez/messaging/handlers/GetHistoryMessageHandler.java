@@ -8,8 +8,8 @@ import ez.messaging.data.transport.Message;
 import ez.messaging.data.transport.payload.GetHistoryMessagePayload;
 import ez.messaging.data.transport.payload.HistoryMessagePayload;
 import ez.messaging.helpers.MessagePayloadHelper;
+import ez.messaging.services.InMemoryMessageStoringService;
 import ez.messaging.services.MessagePassingService;
-import ez.messaging.services.MessageStoringService;
 import ez.messaging.services.UserService;
 import ez.util.JsonConvert;
 
@@ -19,12 +19,12 @@ public class GetHistoryMessageHandler implements MessageHandler {
 
     private MessagePassingService messagePassingService;
 
-    private MessageStoringService messageStoringService;
+    private InMemoryMessageStoringService messageStoringService;
 
     public GetHistoryMessageHandler(
         UserService userService,
         MessagePassingService messagePassingService,
-        MessageStoringService messageStoringService
+        InMemoryMessageStoringService messageStoringService
     ) {
         this.userService = userService;
         this.messagePassingService = messagePassingService;
@@ -37,8 +37,9 @@ public class GetHistoryMessageHandler implements MessageHandler {
         try {
             User sender = userService.getUser(message.getSenderId());
             GetHistoryMessagePayload getHistoryPayload = MessagePayloadHelper.readPayload(message);
-            var messagesHistory = messageStoringService.getMessagesBefore(sender, getHistoryPayload.getLastMessageId());
-            var newMessages = messageStoringService.getMessagesAfter(sender, getHistoryPayload.getLastMessageId());
+            var messagesHistory = messageStoringService.getNMessagesBefore(sender,
+                getHistoryPayload.getHistoryDepth(), getHistoryPayload.getLastMessageId());
+            var newMessages = messageStoringService.getAllMessagesAfter(sender, getHistoryPayload.getLastMessageId());
 
             var historyPayload = new HistoryMessagePayload();
             historyPayload.setHistory(messagesHistory);

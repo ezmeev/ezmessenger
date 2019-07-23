@@ -4,19 +4,27 @@ import java.io.IOException;
 import java.util.List;
 
 import ez.EZMessenger;
+import ez.connection.client.ClientsRegistry;
+import ez.connection.queue.QueueServer;
 import ez.fixtures.EZMessengerClient;
 import ez.messaging.data.StoredMessage;
+import ez.messaging.data.User;
 import ez.messaging.data.transport.Message;
 import ez.messaging.data.transport.MessageType;
 import ez.messaging.data.transport.payload.HistoryMessagePayload;
+import ez.messaging.handlers.GetHistoryMessageHandler;
+import ez.messaging.handlers.MessageRouter;
+import ez.messaging.handlers.TextMessageHandler;
 import ez.messaging.helpers.MessagePayloadHelper;
+import ez.messaging.services.InMemoryMessageStoringService;
+import ez.messaging.services.MessagePassingService;
+import ez.messaging.services.UserService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
 
-import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -26,9 +34,32 @@ public class ClientInitiatesConnectionIT {
 
     private EZMessenger messenger;
 
+    private InMemoryMessageStoringService messageStoringService;
+
     @Before
     public void setUp() {
-        messenger = EZMessenger.Configurator.configureDefault();
+
+        ClientsRegistry clientsRegistry = new ClientsRegistry();
+        MessagePassingService messagePassingService = new MessagePassingService(clientsRegistry);
+        messageStoringService = new InMemoryMessageStoringService();
+
+        var userService = new UserService();
+
+        var getHistoryMessageHandler = new GetHistoryMessageHandler(userService,
+            messagePassingService, messageStoringService);
+
+        var textMessageHandler = new TextMessageHandler(userService,
+            messagePassingService, messageStoringService);
+
+        var messageRouter = new MessageRouter();
+        messageRouter.addHandlerFor(MessageType.TextMessage, textMessageHandler);
+        messageRouter.addHandlerFor(MessageType.GetHistoryMessage, getHistoryMessageHandler);
+
+        messenger = EZMessenger.Configurator.create()
+            .withClientRegistry(clientsRegistry)
+            .withMessageRouter(messageRouter)
+            .withQueueServer(new QueueServer())
+            .build();
         messenger.start();
     }
 
@@ -78,7 +109,17 @@ public class ClientInitiatesConnectionIT {
     @Test
     public void serverShouldReturnHistory_whenReceivesGetHistoryMessage_andHistoryExists() throws IOException {
 
-        fail(); // TODO mock messageStoringService
+        StoredMessage message1 = new StoredMessage();
+        message1.setTimestamp(1);
+        message1.setText("Hi");
+        message1.setMessgeId("1");
+        messageStoringService.storeMessage(new User("1_1"), message1);
+
+        StoredMessage message2 = new StoredMessage();
+        message2.setTimestamp(2);
+        message2.setText("How are you?");
+        message2.setMessgeId("2");
+        messageStoringService.storeMessage(new User("1_1"), message2);
 
         var client = new EZMessengerClient("1_1", "0.0.0.0", 8083);
         client.sendMessage(Message.createHelloMessage("1_1"));

@@ -10,11 +10,10 @@ import ez.connection.queue.registration.ClientConnectionRegistrationHandler;
 import ez.connection.server.ClientConnectionsServer;
 import ez.messaging.data.transport.MessageType;
 import ez.messaging.handlers.GetHistoryMessageHandler;
-import ez.messaging.handlers.MessageHandlers;
+import ez.messaging.handlers.MessageRouter;
 import ez.messaging.handlers.TextMessageHandler;
 import ez.messaging.services.MessagePassingService;
-import ez.messaging.services.MessageRouter;
-import ez.messaging.services.MessageStoringService;
+import ez.messaging.services.InMemoryMessageStoringService;
 import ez.messaging.services.UserService;
 import ez.util.Logger;
 
@@ -81,6 +80,12 @@ public class EZMessenger {
 
     public static class Configurator {
 
+        private ClientsRegistry clientRegistry;
+
+        private QueueServer queueServer;
+
+        private MessageRouter messageRouter;
+
         private Configurator() {
         }
 
@@ -90,21 +95,42 @@ public class EZMessenger {
             var queueServer = new QueueServer();
 
             var userService = new UserService();
+            var messageStoringService = new InMemoryMessageStoringService();
             var messagePassingService = new MessagePassingService(clientsRegistry);
-            var messageStoringService = new MessageStoringService();
 
             var getHistoryMessageHandler = new GetHistoryMessageHandler(userService,
                 messagePassingService, messageStoringService);
 
             var textMessageHandler = new TextMessageHandler(userService, messagePassingService, messageStoringService);
 
-            var messageHandlers = new MessageHandlers();
-            messageHandlers.addHandlerFor(MessageType.TextMessage, textMessageHandler);
-            messageHandlers.addHandlerFor(MessageType.GetHistoryMessage, getHistoryMessageHandler);
-
-            var messageRouter = new MessageRouter(messageHandlers);
+            var messageRouter = new MessageRouter();
+            messageRouter.addHandlerFor(MessageType.GetHistoryMessage, getHistoryMessageHandler);
+            messageRouter.addHandlerFor(MessageType.TextMessage, textMessageHandler);
 
             return new EZMessenger(queueServer, clientsRegistry, messageRouter);
+        }
+
+        public static Configurator create() {
+            return new Configurator();
+        }
+
+        public Configurator withClientRegistry(ClientsRegistry clientRegistry) {
+            this.clientRegistry = clientRegistry;
+            return this;
+        }
+
+        public Configurator withQueueServer(QueueServer queueServer) {
+            this.queueServer = queueServer;
+            return this;
+        }
+
+        public Configurator withMessageRouter(MessageRouter messageRouter) {
+            this.messageRouter = messageRouter;
+            return this;
+        }
+
+        public EZMessenger build() {
+            return new EZMessenger(queueServer, clientRegistry, messageRouter);
         }
     }
 }
