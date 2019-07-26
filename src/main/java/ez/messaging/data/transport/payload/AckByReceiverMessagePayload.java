@@ -1,6 +1,6 @@
 package ez.messaging.data.transport.payload;
 
-public class AckByServerMessagePayload {
+public class AckByReceiverMessagePayload {
     private String messageId;
 
     public void setMessageId(String messageId) {

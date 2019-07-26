@@ -7,9 +7,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import ez.connection.client.ClientConnection;
 import ez.connection.client.ClientsRegistry;
 import ez.connection.data.ConnectionMessage;
-import ez.messaging.data.transport.Message;
-import ez.messaging.data.transport.MessageType;
 import ez.messaging.data.User;
+import ez.messaging.data.transport.Message;
 import ez.util.JsonConvert;
 import ez.util.Logger;
 
@@ -24,14 +23,8 @@ public class MessagePassingService {
 
     public void tryAcknowledgeMessage(User sender, Message message) {
         try {
-
-            Message acknowledgeMessage = new Message();
-            acknowledgeMessage.setReceiverId(sender.getIdentity());
-            acknowledgeMessage.setType(MessageType.AckByServerMessage);
-//            acknowledgeMessage.setData(message.getMessageId());
-
-            sendMessage(sender.getIdentity(), acknowledgeMessage);
-
+            String senderIdentity = sender.getIdentity();
+            sendMessage(senderIdentity, Message.createAckByServerMessage(senderIdentity, message.getMessageId()));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             // TODO

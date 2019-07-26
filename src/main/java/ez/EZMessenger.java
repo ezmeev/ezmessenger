@@ -9,11 +9,15 @@ import ez.connection.queue.messages.ClientConnectionMessageHandler;
 import ez.connection.queue.registration.ClientConnectionRegistrationHandler;
 import ez.connection.server.ClientConnectionsServer;
 import ez.messaging.data.transport.MessageType;
-import ez.messaging.handlers.GetHistoryMessageHandler;
+import ez.messaging.handlers.AckByReceiverHandler;
+import ez.messaging.handlers.GetHistoryHandler;
 import ez.messaging.handlers.MessageRouter;
+import ez.messaging.handlers.ReadHandler;
+import ez.messaging.handlers.StartTypingHandler;
+import ez.messaging.handlers.StopTypingHandler;
 import ez.messaging.handlers.TextMessageHandler;
 import ez.messaging.services.MessagePassingService;
-import ez.messaging.services.InMemoryMessageStoringService;
+import ez.messaging.services.MessageStoringService;
 import ez.messaging.services.UserService;
 import ez.util.Logger;
 
@@ -95,17 +99,23 @@ public class EZMessenger {
             var queueServer = new QueueServer();
 
             var userService = new UserService();
-            var messageStoringService = new InMemoryMessageStoringService();
+            var messageStoringService = new MessageStoringService();
             var messagePassingService = new MessagePassingService(clientsRegistry);
 
-            var getHistoryMessageHandler = new GetHistoryMessageHandler(userService,
-                messagePassingService, messageStoringService);
-
+            var startTypingHandler = new StartTypingHandler(userService, messagePassingService);
+            var stopTypingHandler = new StopTypingHandler(userService, messagePassingService);
             var textMessageHandler = new TextMessageHandler(userService, messagePassingService, messageStoringService);
+            var ackByReceiverHandler = new AckByReceiverHandler(userService, messagePassingService);
+            var getHistoryHandler = new GetHistoryHandler(userService, messagePassingService, messageStoringService);
+            var readHandler = new ReadHandler(userService, messagePassingService);
 
             var messageRouter = new MessageRouter();
-            messageRouter.addHandlerFor(MessageType.GetHistoryMessage, getHistoryMessageHandler);
+            messageRouter.addHandlerFor(MessageType.AckByReceiverMessage, ackByReceiverHandler);
+            messageRouter.addHandlerFor(MessageType.GetHistoryMessage, getHistoryHandler);
             messageRouter.addHandlerFor(MessageType.TextMessage, textMessageHandler);
+            messageRouter.addHandlerFor(MessageType.StartTyping, startTypingHandler);
+            messageRouter.addHandlerFor(MessageType.StopTyping, stopTypingHandler);
+            messageRouter.addHandlerFor(MessageType.Read, readHandler);
 
             return new EZMessenger(queueServer, clientsRegistry, messageRouter);
         }

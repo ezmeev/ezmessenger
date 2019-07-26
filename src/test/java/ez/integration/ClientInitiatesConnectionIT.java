@@ -12,11 +12,11 @@ import ez.messaging.data.User;
 import ez.messaging.data.transport.Message;
 import ez.messaging.data.transport.MessageType;
 import ez.messaging.data.transport.payload.HistoryMessagePayload;
-import ez.messaging.handlers.GetHistoryMessageHandler;
+import ez.messaging.handlers.GetHistoryHandler;
 import ez.messaging.handlers.MessageRouter;
 import ez.messaging.handlers.TextMessageHandler;
 import ez.messaging.helpers.MessagePayloadHelper;
-import ez.messaging.services.InMemoryMessageStoringService;
+import ez.messaging.services.MessageStoringService;
 import ez.messaging.services.MessagePassingService;
 import ez.messaging.services.UserService;
 import org.junit.After;
@@ -34,18 +34,18 @@ public class ClientInitiatesConnectionIT {
 
     private EZMessenger messenger;
 
-    private InMemoryMessageStoringService messageStoringService;
+    private MessageStoringService messageStoringService;
 
     @Before
     public void setUp() {
 
         ClientsRegistry clientsRegistry = new ClientsRegistry();
         MessagePassingService messagePassingService = new MessagePassingService(clientsRegistry);
-        messageStoringService = new InMemoryMessageStoringService();
+        messageStoringService = new MessageStoringService();
 
         var userService = new UserService();
 
-        var getHistoryMessageHandler = new GetHistoryMessageHandler(userService,
+        var getHistoryMessageHandler = new GetHistoryHandler(userService,
             messagePassingService, messageStoringService);
 
         var textMessageHandler = new TextMessageHandler(userService,

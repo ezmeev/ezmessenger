@@ -8,23 +8,23 @@ import ez.messaging.data.transport.Message;
 import ez.messaging.data.transport.payload.GetHistoryMessagePayload;
 import ez.messaging.data.transport.payload.HistoryMessagePayload;
 import ez.messaging.helpers.MessagePayloadHelper;
-import ez.messaging.services.InMemoryMessageStoringService;
+import ez.messaging.services.MessageStoringService;
 import ez.messaging.services.MessagePassingService;
 import ez.messaging.services.UserService;
 import ez.util.JsonConvert;
 
-public class GetHistoryMessageHandler implements MessageHandler {
+public class GetHistoryHandler implements MessageHandler {
 
     private UserService userService;
 
     private MessagePassingService messagePassingService;
 
-    private InMemoryMessageStoringService messageStoringService;
+    private MessageStoringService messageStoringService;
 
-    public GetHistoryMessageHandler(
+    public GetHistoryHandler(
         UserService userService,
         MessagePassingService messagePassingService,
-        InMemoryMessageStoringService messageStoringService
+        MessageStoringService messageStoringService
     ) {
         this.userService = userService;
         this.messagePassingService = messagePassingService;

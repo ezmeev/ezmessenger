@@ -3,12 +3,11 @@ package ez.messaging.handlers;
 import java.io.IOException;
 
 import ez.messaging.data.StoredMessage;
-import ez.messaging.data.User;
 import ez.messaging.data.transport.Message;
 import ez.messaging.data.transport.payload.TextMessagePayload;
 import ez.messaging.helpers.MessagePayloadHelper;
-import ez.messaging.services.InMemoryMessageStoringService;
 import ez.messaging.services.MessagePassingService;
+import ez.messaging.services.MessageStoringService;
 import ez.messaging.services.UserService;
 
 public class TextMessageHandler implements MessageHandler {
@@ -17,12 +16,12 @@ public class TextMessageHandler implements MessageHandler {
 
     private MessagePassingService messagePassingService;
 
-    private InMemoryMessageStoringService messageStoringService;
+    private MessageStoringService messageStoringService;
 
     public TextMessageHandler(
         UserService userService,
         MessagePassingService messagePassingService,
-        InMemoryMessageStoringService messageStoringService
+        MessageStoringService messageStoringService
     ) {
         this.userService = userService;
         this.messagePassingService = messagePassingService;
@@ -36,23 +35,20 @@ public class TextMessageHandler implements MessageHandler {
             TextMessagePayload payload = MessagePayloadHelper.readPayload(message);
             long timestamp = System.currentTimeMillis(); // FIXME timesync problem for multiple instances
 
-            var senderMessage = new StoredMessage();
-            senderMessage.setText(payload.getText());
-            senderMessage.setTimestamp(timestamp);
-            senderMessage.setMessgeId(message.getMessageId());
+            var storedMessage = new StoredMessage();
+            storedMessage.setText(payload.getText());
+            storedMessage.setTimestamp(timestamp);
+            storedMessage.setMessgeId(message.getMessageId());
 
-            var receiverMessage = new StoredMessage();
-            receiverMessage.setText(payload.getText());
-            receiverMessage.setTimestamp(timestamp);
-            receiverMessage.setMessgeId(message.getMessageId());
+            var sender = userService.getUser(message.getSenderId());
+            messageStoringService.storeMessage(sender, storedMessage);
 
-            User sender = userService.getUser(message.getSenderId());
-            messageStoringService.storeMessage(sender, senderMessage);
+            var receiver = userService.getUser(message.getReceiverId());
+            messageStoringService.storeMessage(receiver, storedMessage);
 
-            User receiver = userService.getUser(message.getReceiverId());
-            messageStoringService.storeMessage(receiver, receiverMessage);
+            var ackByServer = Message.createAckByServerMessage(sender.getIdentity(), message.getMessageId());
+            messagePassingService.sendMessageTo(sender, ackByServer);
 
-            messagePassingService.tryAcknowledgeMessage(sender, message);
             messagePassingService.sendMessageTo(receiver, message);
 
         } catch (IOException e) {

@@ -50,7 +50,7 @@ public class EZMessengerClient implements AutoCloseable {
         writer.write(payload.getBytes());
         writer.flush();
 
-        waitReaderDataAvailable();
+        waitReaderDataAvailable(3);
 
         byte[] data = reader.readNBytes(3);
         String ack = new String(data);
@@ -74,10 +74,14 @@ public class EZMessengerClient implements AutoCloseable {
     }
 
     public Message waitMessage() throws IOException {
+        return waitMessage(3);
+    }
+
+    public Message waitMessage(int timeoutSeconds) throws IOException {
         if (socket == null) {
             connect();
         }
-        waitReaderDataAvailable();
+        waitReaderDataAvailable(timeoutSeconds);
         return getMessage();
     }
 
@@ -88,9 +92,26 @@ public class EZMessengerClient implements AutoCloseable {
         }
     }
 
-    private void waitReaderDataAvailable() throws IOException {
+    private void waitReaderDataAvailable(int timeoutSeconds) throws IOException {
+        long startedAt = System.currentTimeMillis();
         while (reader.available() == 0) {
+            long current = System.currentTimeMillis();
+
+            if (current - startedAt > 1000 * timeoutSeconds) {
+                throw new RuntimeException("WaitMessage timed out");
+            }
+
             Thread.yield();
         }
+    }
+
+    public void readMessage(Message message) throws IOException {
+        sendMessage(Message.createReadMessage(message.getSenderId(), message.getReceiverId(),
+            message.getMessageId()));
+    }
+
+    public void ackMessage(Message receiverMsg) throws IOException {
+        sendMessage(Message.createAckByReceiverMessage(receiverMsg.getReceiverId(), receiverMsg.getSenderId(),
+            receiverMsg.getMessageId()));
     }
 }

@@ -35,22 +35,7 @@ public class ClientMessagesExchangeIT {
     }
 
     @Test
-    public void shouldAcknowledgeTextMessage() throws IOException {
-        var client = new EZMessengerClient("1_1", "0.0.0.0", 8083);
-        Message helloMessage = Message.createHelloMessage("1_1");
-        boolean initMessageAcknowledged = client.sendMessage(helloMessage);
-        assertTrue(initMessageAcknowledged);
-
-        Message textMessage = Message.createTextMessage("1_1", "2_2", "Hello");
-        boolean textMessageAcknowledged = client.sendMessage(textMessage);
-        assertTrue(textMessageAcknowledged);
-
-        Message textMessageAcknowledge = client.waitMessage();
-        assertNotNull(textMessageAcknowledge);
-    }
-
-    @Test
-    public void shouldPassMessages_WhenBothClientsOnline() throws IOException {
+    public void shouldPassMessagesWhenBothClientsOnline_x500() throws IOException {
 
         messenger.stop();
 
@@ -82,5 +67,118 @@ public class ClientMessagesExchangeIT {
         }
 
         messenger.start();
+    }
+
+    @Test
+    public void serverShouldAcknowledgeTextMessage() throws IOException {
+        var client = new EZMessengerClient("1_1", "0.0.0.0", 8083);
+        Message helloMessage = Message.createHelloMessage("1_1");
+        client.sendMessage(helloMessage);
+
+        Message textMessage = Message.createTextMessage("1_1", "2_2", "Hello");
+        boolean textMessageAcknowledged = client.sendMessage(textMessage);
+        assertTrue(textMessageAcknowledged);
+    }
+
+    @Test
+    public void senderShouldReceiveAckByServer() throws IOException {
+        var client = new EZMessengerClient("1_1", "0.0.0.0", 8083);
+        client.sendMessage(Message.createHelloMessage("1_1"));
+
+        Message textMessage = Message.createTextMessage("1_1", "2_2", "Hello");
+        client.sendMessage(textMessage);
+        Message ackByServer = client.waitMessage();
+
+        assertNotNull(ackByServer);
+        assertEquals(MessageType.AckByServerMessage, ackByServer.getType());
+    }
+
+    @Test
+    public void receiverShouldReceiveTextMessage() throws IOException {
+        var client1 = new EZMessengerClient("1_1", "0.0.0.0", 8083);
+        client1.sendMessage(Message.createHelloMessage("1_1"));
+
+        var client2 = new EZMessengerClient("2_2", "0.0.0.0", 8083);
+        client2.sendMessage(Message.createHelloMessage("2_2"));
+
+        Message textMessage = Message.createTextMessage("1_1", "2_2", "Hello");
+        client1.sendMessage(textMessage);
+        client1.waitMessage(); // AckByServerMessage
+
+        Message receiverMessage = client2.waitMessage();
+        assertEquals(MessageType.TextMessage, receiverMessage.getType());
+        assertEquals("1_1", receiverMessage.getSenderId());
+        assertEquals("2_2", receiverMessage.getReceiverId());
+
+        TextMessagePayload textMessagePayload = MessagePayloadHelper.readPayload(receiverMessage);
+        assertEquals("Hello", textMessagePayload.getText());
+    }
+
+    @Test
+    public void senderShouldReceiveAckByReceiverMessage() throws IOException {
+        var client1 = new EZMessengerClient("1_1", "0.0.0.0", 8083);
+        client1.sendMessage(Message.createHelloMessage("1_1"));
+
+        var client2 = new EZMessengerClient("2_2", "0.0.0.0", 8083);
+        client2.sendMessage(Message.createHelloMessage("2_2"));
+
+        client1.sendMessage(Message.createTextMessage("1_1", "2_2", "Hello"));
+        client1.waitMessage(); // AckByServerMessage
+
+        Message receiverMsg = client2.waitMessage();
+        client2.ackMessage(receiverMsg);
+
+        Message ackByReceiver = client1.waitMessage();
+        assertEquals(MessageType.AckByReceiverMessage, ackByReceiver.getType());
+    }
+
+    @Test
+    public void senderShouldReceiveReadMessage() throws IOException {
+        var client1 = new EZMessengerClient("1_1", "0.0.0.0", 8083);
+        client1.sendMessage(Message.createHelloMessage("1_1"));
+
+        var client2 = new EZMessengerClient("2_2", "0.0.0.0", 8083);
+        client2.sendMessage(Message.createHelloMessage("2_2"));
+
+        client1.sendMessage(Message.createTextMessage("1_1", "2_2", "Hello"));
+        client1.waitMessage(); // AckByServerMessage
+
+        Message receiverMsg = client2.waitMessage();
+        client2.ackMessage(receiverMsg);
+
+        client1.waitMessage(); // AckByReceiverMessage
+
+        client2.readMessage(receiverMsg);
+
+        Message readByClient2 = client1.waitMessage();
+        assertEquals(MessageType.Read, readByClient2.getType());
+    }
+
+    @Test
+    public void receiverShouldReceiveStartTypingMessage() throws IOException {
+        var client1 = new EZMessengerClient("1_1", "0.0.0.0", 8083);
+        client1.sendMessage(Message.createHelloMessage("1_1"));
+
+        var client2 = new EZMessengerClient("2_2", "0.0.0.0", 8083);
+        client2.sendMessage(Message.createHelloMessage("2_2"));
+
+        client1.sendMessage(Message.createStartTypingMessage("1_1", "2_2"));
+
+        Message receiverMsg = client2.waitMessage();
+        assertEquals(MessageType.StartTyping, receiverMsg.getType());
+    }
+
+    @Test
+    public void receiverShouldReceiveStopTypingMessage() throws IOException {
+        var client1 = new EZMessengerClient("1_1", "0.0.0.0", 8083);
+        client1.sendMessage(Message.createHelloMessage("1_1"));
+
+        var client2 = new EZMessengerClient("2_2", "0.0.0.0", 8083);
+        client2.sendMessage(Message.createHelloMessage("2_2"));
+
+        client1.sendMessage(Message.createStopTypingMessage("1_1", "2_2"));
+
+        Message receiverMsg = client2.waitMessage();
+        assertEquals(MessageType.StopTyping, receiverMsg.getType());
     }
 }

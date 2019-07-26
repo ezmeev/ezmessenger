@@ -2,7 +2,10 @@ package ez.messaging.data.transport;
 
 import java.nio.charset.StandardCharsets;
 
+import ez.messaging.data.transport.payload.AckByReceiverMessagePayload;
+import ez.messaging.data.transport.payload.AckByServerMessagePayload;
 import ez.messaging.data.transport.payload.GetHistoryMessagePayload;
+import ez.messaging.data.transport.payload.ReadMessagePayload;
 import ez.messaging.data.transport.payload.TextMessagePayload;
 import ez.messaging.helpers.MessagePayloadHelper;
 
@@ -90,6 +93,57 @@ public class Message {
         message.setSenderId(senderId);
         message.setReceiverId(receiverId);
         message.setData(MessagePayloadHelper.toBytes(payload));
+        return message;
+    }
+
+    public static Message createAckByServerMessage(String receiverId, String messageId) {
+        var payload = new AckByServerMessagePayload();
+        payload.setMessageId(messageId);
+
+        Message message = new Message();
+        message.setReceiverId(receiverId);
+        message.setType(MessageType.AckByServerMessage);
+        message.setData(MessagePayloadHelper.toBytes(payload));
+        return message;
+    }
+
+    public static Message createAckByReceiverMessage(String senderId, String receiverId, String messageId) {
+        var payload = new AckByReceiverMessagePayload();
+        payload.setMessageId(messageId);
+
+        Message message = new Message();
+        message.setReceiverId(senderId);
+        message.setReceiverId(receiverId);
+        message.setType(MessageType.AckByReceiverMessage);
+        message.setData(MessagePayloadHelper.toBytes(payload));
+        return message;
+    }
+
+    public static Message createReadMessage(String receiverId, String senderId, String messageId) {
+        var payload = new ReadMessagePayload();
+        payload.setMessageId(messageId);
+
+        Message message = new Message();
+        message.setReceiverId(senderId);
+        message.setReceiverId(receiverId);
+        message.setType(MessageType.Read);
+        message.setData(MessagePayloadHelper.toBytes(payload));
+        return message;
+    }
+
+    public static Message createStartTypingMessage(String senderId, String receiverId) {
+        Message message = new Message();
+        message.setReceiverId(senderId);
+        message.setReceiverId(receiverId);
+        message.setType(MessageType.StartTyping);
+        return message;
+    }
+
+    public static Message createStopTypingMessage(String senderId, String receiverId) {
+        Message message = new Message();
+        message.setReceiverId(senderId);
+        message.setReceiverId(receiverId);
+        message.setType(MessageType.StopTyping);
         return message;
     }
 }

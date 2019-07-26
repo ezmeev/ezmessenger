@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ez.connection.data.ConnectionMessage;
 import ez.messaging.data.transport.Message;
 import ez.messaging.data.transport.MessageType;
+import ez.util.Logger;
 
 public class MessageRouter {
 
@@ -29,7 +30,11 @@ public class MessageRouter {
 
             MessageHandler handler = messageHandlers.get(parsedMessage.getType());
 
-            handler.handleMessage(parsedMessage);
+            if (handler == null) {
+                Logger.log("[MESSAGE_ROUTER]: unable to find handler for type [" + parsedMessage.getType() + "]");
+            } else {
+                handler.handleMessage(parsedMessage);
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
