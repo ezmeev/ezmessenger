@@ -10,6 +10,8 @@ public class QueueServer {
     private ClientConnectionRegistrationQueue registrationsQueue;
 
     public QueueServer() {
+        // TODO http://tutorials.jenkov.com/java-concurrency/blocking-queues.html
+
         this.messagesQueue = new ClientConnectionMessageQueue();
         this.registrationsQueue = new ClientConnectionRegistrationQueue();
     }
