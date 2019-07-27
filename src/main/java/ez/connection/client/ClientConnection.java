@@ -12,7 +12,7 @@ public class ClientConnection {
 
     private Socket connection;
 
-    private ConnectionMessage lastMessage; // volotile ???
+    private ConnectionMessage lastMessage; // volatile ???
 
     private BufferedInputStream reader;
 
