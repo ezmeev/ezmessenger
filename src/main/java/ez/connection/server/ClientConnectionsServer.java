@@ -31,15 +31,10 @@ public class ClientConnectionsServer {
         acceptConnectionsThread = new Thread(() -> {
             while (!stopped) {
                 try {
-//                    Logger.log("Waiting for incoming connections ...");
-
                     Socket incomingConnection = socket.accept();
-
-//                    Logger.log("New connection established");
-
                     ClientConnection clientConnection = new ClientConnection(incomingConnection);
 
-                    registrationQueue.add(clientConnection);
+                    registrationQueue.enqueue(clientConnection);
 
                 } catch (SocketException e) {
                     // kinda expected, seems like there no other good way to "interrupt" accept()

@@ -33,16 +33,10 @@ public class ClientConnectionsListener {
 
                     if (connection.newDataAvailable() && !connection.isQueued()) {
                         Logger.log("[CONNECTIONS_LISTENER] new data available - queueing");
-                        messageReadingQueue.add(connection);
+                        messageReadingQueue.enqueue(connection);
                         connection.markQueued();
                     }
                 }
-
-//                try {
-//                    Thread.sleep(500);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
             }
         });
 

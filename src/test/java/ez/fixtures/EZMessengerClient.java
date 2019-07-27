@@ -74,7 +74,7 @@ public class EZMessengerClient implements AutoCloseable {
     }
 
     public Message waitMessage() throws IOException {
-        return waitMessage(3);
+        return waitMessage(5);
     }
 
     public Message waitMessage(int timeoutSeconds) throws IOException {

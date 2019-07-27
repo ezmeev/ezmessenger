@@ -1,30 +1,33 @@
 package ez.connection.queue.messages;
 
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.LinkedList;
 
 import ez.connection.client.ClientConnection;
 
 public class ClientConnectionMessageQueue {
 
-    private ConcurrentLinkedDeque<ClientConnection> connectionMessagesQueue;
+    private LinkedList<ClientConnection> connectionMessagesQueue;
 
     public ClientConnectionMessageQueue() {
-        connectionMessagesQueue = new ConcurrentLinkedDeque<>();
+        connectionMessagesQueue = new LinkedList<>();
     }
 
-    public void add(ClientConnection connection) {
+    public synchronized void enqueue(ClientConnection connection) {
         connectionMessagesQueue.addLast(connection);
+
+        if (connectionMessagesQueue.size() == 1) {
+            notifyAll();
+        }
     }
 
-    public ClientConnection peek() {
-        return connectionMessagesQueue.isEmpty() ? null : connectionMessagesQueue.peekFirst();
+    public synchronized ClientConnection dequeue() throws InterruptedException {
+        if (connectionMessagesQueue.size() == 0) {
+            wait();
+        }
+        return connectionMessagesQueue.size() == 0 ? null : connectionMessagesQueue.pop();
     }
 
-    public ClientConnection pop() {
-        return connectionMessagesQueue.pop();
-    }
-
-    public int size() {
-        return connectionMessagesQueue.size();
+    public synchronized void stop() {
+        notifyAll();
     }
 }

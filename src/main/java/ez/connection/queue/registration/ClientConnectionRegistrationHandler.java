@@ -33,25 +33,28 @@ public class ClientConnectionRegistrationHandler {
     public void start() {
         handlerThread = new Thread(() -> {
             while (!stopped) {
-                ClientConnection connection = queue.peek();
-                if (connection != null) {
-                    ConnectionMessage message = connectionDataReader.readMessage(connection);
-                    if (message != null) {
-                        String messageData = new String(message.getData());
+                try {
+                    ClientConnection connection = queue.dequeue();
+                    if (connection != null) {
+                        ConnectionMessage message = connectionDataReader.readMessage(connection);
+                        if (message != null) {
+                            String messageData = new String(message.getData());
 
-                        try {
-                            Message helloMessage = objectMapper.readValue(messageData, Message.class);
-
-                            // TODO validate helloMessage
-
-                            connectionsRegister.registerConnection(helloMessage.getSenderId(), connection);
-
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            // TODO
+                            try {
+                                Message helloMessage = objectMapper.readValue(messageData, Message.class);
+                                // TODO validate helloMessage
+                                connectionsRegister.registerConnection(helloMessage.getSenderId(), connection);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                // TODO
+                            }
+                        }else {
+                            queue.enqueue(connection);
                         }
-                        queue.pop();
                     }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    // TODO
                 }
             }
         });
@@ -60,6 +63,7 @@ public class ClientConnectionRegistrationHandler {
 
     public void stop() throws InterruptedException {
         stopped = true;
+        queue.stop();
         handlerThread.join();
 
         Logger.log("Client connection registrations handler: stopped");

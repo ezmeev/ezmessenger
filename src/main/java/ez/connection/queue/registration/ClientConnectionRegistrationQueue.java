@@ -1,26 +1,32 @@
 package ez.connection.queue.registration;
 
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.LinkedList;
 
 import ez.connection.client.ClientConnection;
 
 public class ClientConnectionRegistrationQueue {
 
-    private ConcurrentLinkedDeque<ClientConnection> connectionRegistrationQueue;
+    private LinkedList<ClientConnection> connectionRegistrationQueue;
 
     public ClientConnectionRegistrationQueue() {
-        connectionRegistrationQueue = new ConcurrentLinkedDeque<>();
+        connectionRegistrationQueue = new LinkedList<>();
     }
 
-    public void add(ClientConnection connection) {
+    public synchronized void enqueue(ClientConnection connection) {
         connectionRegistrationQueue.addLast(connection);
+        if (connectionRegistrationQueue.size() == 1) {
+            notifyAll();
+        }
     }
 
-    public ClientConnection peek() {
-        return connectionRegistrationQueue.isEmpty() ? null : connectionRegistrationQueue.peekFirst();
+    public synchronized ClientConnection dequeue() throws InterruptedException {
+        if (connectionRegistrationQueue.size() == 0) {
+            wait();
+        }
+        return connectionRegistrationQueue.size() == 0 ? null : connectionRegistrationQueue.pop();
     }
 
-    public ClientConnection pop() {
-        return connectionRegistrationQueue.pop();
+    public synchronized void stop() {
+        notifyAll();
     }
 }

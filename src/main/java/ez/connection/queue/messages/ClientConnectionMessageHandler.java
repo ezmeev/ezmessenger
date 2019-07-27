@@ -28,24 +28,25 @@ public class ClientConnectionMessageHandler {
     public void start() {
         handlerThread = new Thread(() -> {
             while (!stopped) {
-                if (queue.size() > 0) {
-                    ClientConnection connection = queue.peek();
+                try {
+                    ClientConnection connection = queue.dequeue();
                     if (connection != null) {
                         ConnectionMessage message = connectionDataReader.readMessage(connection);
                         if (message != null) {
                             try {
                                 handler.route(message);
-                                queue.pop();
                                 connection.markUnqueued();
                             } catch (Exception e) {
                                 e.printStackTrace();
                                 // TODO
                             }
+                        }else {
+                            queue.enqueue(connection);
                         }
-                    } else {
-                        Logger.log("[MESSAGE_HANDLER]: null connection found");
-                        queue.pop();
                     }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    // TODO
                 }
             }
         });
@@ -54,6 +55,7 @@ public class ClientConnectionMessageHandler {
 
     public void stop() throws InterruptedException {
         stopped = true;
+        queue.stop();
         handlerThread.join();
         Logger.log("Client connection messages handler: stopped");
     }

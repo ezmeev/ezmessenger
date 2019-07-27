@@ -35,11 +35,11 @@ public class ClientMessagesExchangeIT {
     }
 
     @Test
-    public void shouldPassMessagesWhenBothClientsOnline_x500() throws IOException {
+    public void shouldPassMessagesWhenBothClientsOnline_x1000() throws IOException {
 
         messenger.stop();
 
-        for (var i = 1; i <= 500; i++) {
+        for (var i = 1; i <= 1000; i++) {
 
             System.out.println(" ******* RUN #" + i + " ******* ");
 
