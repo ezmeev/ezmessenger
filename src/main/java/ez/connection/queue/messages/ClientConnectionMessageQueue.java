@@ -2,17 +2,17 @@ package ez.connection.queue.messages;
 
 import java.util.LinkedList;
 
-import ez.connection.client.ClientConnection;
+import ez.connection.data.ConnectionMessage;
 
 public class ClientConnectionMessageQueue {
 
-    private LinkedList<ClientConnection> connectionMessagesQueue;
+    private LinkedList<ConnectionMessage> connectionMessagesQueue;
 
     public ClientConnectionMessageQueue() {
         connectionMessagesQueue = new LinkedList<>();
     }
 
-    public synchronized void enqueue(ClientConnection connection) {
+    public synchronized void enqueue(ConnectionMessage connection) {
         connectionMessagesQueue.addLast(connection);
 
         if (connectionMessagesQueue.size() == 1) {
@@ -20,7 +20,7 @@ public class ClientConnectionMessageQueue {
         }
     }
 
-    public synchronized ClientConnection dequeue() throws InterruptedException {
+    public synchronized ConnectionMessage dequeue() throws InterruptedException {
         if (connectionMessagesQueue.size() == 0) {
             wait();
         }

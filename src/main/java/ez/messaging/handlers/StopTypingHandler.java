@@ -1,5 +1,6 @@
 package ez.messaging.handlers;
 
+import ez.connection.data.ConnectionMessage;
 import ez.messaging.data.User;
 import ez.messaging.data.transport.Message;
 import ez.messaging.services.MessagePassingService;
@@ -20,7 +21,7 @@ public class StopTypingHandler implements MessageHandler {
     }
 
     @Override
-    public void handleMessage(Message message) {
+    public void handleMessage(Message message, ConnectionMessage connectionMessage) {
 
         try {
             User receiver = userService.getUser(message.getReceiverId());

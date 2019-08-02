@@ -28,6 +28,5 @@ public class EZMessengerIT {
         // verifying that sockets and other resources released without problems
         messenger.stop();
         messenger.start();
-        messenger.stop();
     }
 }

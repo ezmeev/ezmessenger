@@ -1,7 +1,5 @@
 package ez;
 
-import java.io.IOException;
-
 import ez.connection.client.ClientConnectionsListener;
 import ez.connection.client.ClientsRegistry;
 import ez.connection.queue.QueueServer;
@@ -11,6 +9,7 @@ import ez.connection.server.ClientConnectionsServer;
 import ez.messaging.data.transport.MessageType;
 import ez.messaging.handlers.AckByReceiverHandler;
 import ez.messaging.handlers.GetHistoryHandler;
+import ez.messaging.handlers.HelloMessageHandler;
 import ez.messaging.handlers.MessageRouter;
 import ez.messaging.handlers.ReadHandler;
 import ez.messaging.handlers.StartTypingHandler;
@@ -44,24 +43,19 @@ public class EZMessenger {
     }
 
     public void start() {
-        try {
+        connections.init();
 
-            server = new ClientConnectionsServer(queueServer.getRegistrationsQueue());
-            server.start();
+        server = new ClientConnectionsServer(queueServer.getRegistrationsQueue());
+        server.start();
 
-            listener = new ClientConnectionsListener(queueServer.getMessagesQueue(), connections);
-            listener.start();
+        listener = new ClientConnectionsListener(queueServer.getMessagesQueue(), connections);
+        listener.start();
 
-            messagesHandler = new ClientConnectionMessageHandler(queueServer.getMessagesQueue(), messageRouter);
-            messagesHandler.start();
+        messagesHandler = new ClientConnectionMessageHandler(queueServer.getMessagesQueue(), messageRouter);
+        messagesHandler.start();
 
-            registrationsHandler = new ClientConnectionRegistrationHandler(queueServer.getRegistrationsQueue(), connections);
-            registrationsHandler.start();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            // TODO
-        }
+        registrationsHandler = new ClientConnectionRegistrationHandler(queueServer.getRegistrationsQueue(), connections);
+        registrationsHandler.start();
     }
 
     public void stop() {
@@ -107,11 +101,13 @@ public class EZMessenger {
             var textMessageHandler = new TextMessageHandler(userService, messagePassingService, messageStoringService);
             var ackByReceiverHandler = new AckByReceiverHandler(userService, messagePassingService);
             var getHistoryHandler = new GetHistoryHandler(userService, messagePassingService, messageStoringService);
+            var helloHandler = new HelloMessageHandler(clientsRegistry);
             var readHandler = new ReadHandler(userService, messagePassingService);
 
             var messageRouter = new MessageRouter();
             messageRouter.addHandlerFor(MessageType.AckByReceiverMessage, ackByReceiverHandler);
             messageRouter.addHandlerFor(MessageType.GetHistoryMessage, getHistoryHandler);
+            messageRouter.addHandlerFor(MessageType.HelloMessage, helloHandler);
             messageRouter.addHandlerFor(MessageType.TextMessage, textMessageHandler);
             messageRouter.addHandlerFor(MessageType.StartTyping, startTypingHandler);
             messageRouter.addHandlerFor(MessageType.StopTyping, stopTypingHandler);

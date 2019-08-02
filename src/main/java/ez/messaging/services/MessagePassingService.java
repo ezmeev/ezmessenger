@@ -1,6 +1,5 @@
 package ez.messaging.services;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -12,6 +11,8 @@ import ez.messaging.data.transport.Message;
 import ez.util.JsonConvert;
 import ez.util.Logger;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class MessagePassingService {
 
     private ClientsRegistry connections;
@@ -19,16 +20,6 @@ public class MessagePassingService {
     public MessagePassingService(ClientsRegistry connections) {
 
         this.connections = connections;
-    }
-
-    public void tryAcknowledgeMessage(User sender, Message message) {
-        try {
-            String senderIdentity = sender.getIdentity();
-            sendMessage(senderIdentity, Message.createAckByServerMessage(senderIdentity, message.getMessageId()));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            // TODO
-        }
     }
 
     public void sendMessageTo(User receiver, Message message) {
@@ -42,11 +33,11 @@ public class MessagePassingService {
 
     private void sendMessage(String identity, Message message) throws JsonProcessingException {
         String payload = JsonConvert.serialize(message);
-        ConnectionMessage connectionMessage = new ConnectionMessage(payload.getBytes(StandardCharsets.UTF_8));
 
         Map<String, ClientConnection> clients = connections.getSnapshot();
         if (clients.containsKey(identity)) {
             ClientConnection clientConnection = clients.get(identity);
+            ConnectionMessage connectionMessage = new ConnectionMessage(clientConnection, payload.getBytes(UTF_8));
             clientConnection.sendMessage(connectionMessage);
         } else {
             Logger.log("Receiver [" + identity + "] not connected");

@@ -33,7 +33,7 @@ public class MessageRouter {
             if (handler == null) {
                 Logger.log("[MESSAGE_ROUTER]: unable to find handler for type [" + parsedMessage.getType() + "]");
             } else {
-                handler.handleMessage(parsedMessage);
+                handler.handleMessage(parsedMessage, message);
             }
 
         } catch (IOException e) {

@@ -3,6 +3,7 @@ package ez.messaging.handlers;
 import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import ez.connection.data.ConnectionMessage;
 import ez.messaging.data.User;
 import ez.messaging.data.transport.Message;
 import ez.messaging.data.transport.payload.GetHistoryMessagePayload;
@@ -32,7 +33,7 @@ public class GetHistoryHandler implements MessageHandler {
     }
 
     @Override
-    public void handleMessage(Message message) {
+    public void handleMessage(Message message, ConnectionMessage connectionMessage) {
 
         try {
             User sender = userService.getUser(message.getSenderId());

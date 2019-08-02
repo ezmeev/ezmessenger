@@ -2,6 +2,7 @@ package ez.messaging.handlers;
 
 import java.io.IOException;
 
+import ez.connection.data.ConnectionMessage;
 import ez.messaging.data.StoredMessage;
 import ez.messaging.data.transport.Message;
 import ez.messaging.data.transport.payload.TextMessagePayload;
@@ -29,7 +30,7 @@ public class TextMessageHandler implements MessageHandler {
     }
 
     @Override
-    public void handleMessage(Message message) {
+    public void handleMessage(Message message, ConnectionMessage connectionMessage) {
 
         try {
             TextMessagePayload payload = MessagePayloadHelper.readPayload(message);

@@ -2,23 +2,15 @@ package ez.connection.queue.registration;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import ez.connection.client.ClientConnection;
-import ez.connection.client.ClientConnectionMessageReader;
 import ez.connection.client.ClientsRegistry;
-import ez.connection.data.ConnectionMessage;
-import ez.messaging.data.transport.Message;
 import ez.util.Logger;
 
 public class ClientConnectionRegistrationHandler {
 
-    private final ClientConnectionMessageReader connectionDataReader;
-
     private final ClientConnectionRegistrationQueue queue;
 
     private ClientsRegistry connectionsRegister;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private volatile Thread handlerThread;
 
@@ -27,7 +19,6 @@ public class ClientConnectionRegistrationHandler {
     public ClientConnectionRegistrationHandler(ClientConnectionRegistrationQueue queue, ClientsRegistry connectionsRegister) {
         this.queue = queue;
         this.connectionsRegister = connectionsRegister;
-        this.connectionDataReader = new ClientConnectionMessageReader();
     }
 
     public void start() {
@@ -36,23 +27,9 @@ public class ClientConnectionRegistrationHandler {
                 try {
                     ClientConnection connection = queue.dequeue();
                     if (connection != null) {
-                        ConnectionMessage message = connectionDataReader.readMessage(connection);
-                        if (message != null) {
-                            String messageData = new String(message.getData());
-
-                            try {
-                                Message helloMessage = objectMapper.readValue(messageData, Message.class);
-                                // TODO validate helloMessage
-                                connectionsRegister.registerConnection(helloMessage.getSenderId(), connection);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                // TODO
-                            }
-                        }else {
-                            queue.enqueue(connection);
-                        }
+                        connectionsRegister.registerChannel(connection);
                     }
-                } catch (InterruptedException e) {
+                } catch (InterruptedException | IOException e) {
                     e.printStackTrace();
                     // TODO
                 }

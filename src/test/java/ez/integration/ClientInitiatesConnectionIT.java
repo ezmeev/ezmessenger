@@ -13,6 +13,7 @@ import ez.messaging.data.transport.Message;
 import ez.messaging.data.transport.MessageType;
 import ez.messaging.data.transport.payload.HistoryMessagePayload;
 import ez.messaging.handlers.GetHistoryHandler;
+import ez.messaging.handlers.HelloMessageHandler;
 import ez.messaging.handlers.MessageRouter;
 import ez.messaging.handlers.TextMessageHandler;
 import ez.messaging.helpers.MessagePayloadHelper;
@@ -51,8 +52,11 @@ public class ClientInitiatesConnectionIT {
         var textMessageHandler = new TextMessageHandler(userService,
             messagePassingService, messageStoringService);
 
+        var helloHandler = new HelloMessageHandler(clientsRegistry);
+
         var messageRouter = new MessageRouter();
         messageRouter.addHandlerFor(MessageType.TextMessage, textMessageHandler);
+        messageRouter.addHandlerFor(MessageType.HelloMessage, helloHandler);
         messageRouter.addHandlerFor(MessageType.GetHistoryMessage, getHistoryMessageHandler);
 
         messenger = EZMessenger.Configurator.create()

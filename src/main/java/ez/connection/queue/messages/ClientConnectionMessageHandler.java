@@ -1,14 +1,10 @@
 package ez.connection.queue.messages;
 
-import ez.connection.client.ClientConnection;
-import ez.connection.client.ClientConnectionMessageReader;
 import ez.connection.data.ConnectionMessage;
 import ez.messaging.handlers.MessageRouter;
 import ez.util.Logger;
 
 public class ClientConnectionMessageHandler {
-
-    private final ClientConnectionMessageReader connectionDataReader;
 
     private final ClientConnectionMessageQueue queue;
 
@@ -22,26 +18,20 @@ public class ClientConnectionMessageHandler {
 
         this.queue = queue;
         this.handler = handler;
-        this.connectionDataReader = new ClientConnectionMessageReader();
     }
 
     public void start() {
         handlerThread = new Thread(() -> {
             while (!stopped) {
                 try {
-                    ClientConnection connection = queue.dequeue();
-                    if (connection != null) {
-                        ConnectionMessage message = connectionDataReader.readMessage(connection);
-                        if (message != null) {
-                            try {
-                                handler.route(message);
-                                connection.markUnqueued();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                // TODO
-                            }
-                        }else {
-                            queue.enqueue(connection);
+                    ConnectionMessage message = queue.dequeue();
+                    if (message != null) {
+                        try {
+                            handler.route(message);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            // TODO
+                            // queue.enqueue(message); // Retry ?
                         }
                     }
                 } catch (InterruptedException e) {
