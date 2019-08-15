@@ -1,11 +1,12 @@
 package ez;
 
-import ez.connection.client.ClientConnectionsListener;
-import ez.connection.client.ClientsRegistry;
+import ez.connection.listener.ConnectionsListener;
+import ez.connection.registry.ConnectionsRegistry;
 import ez.connection.queue.QueueServer;
 import ez.connection.queue.messages.ClientConnectionMessageHandler;
 import ez.connection.queue.registration.ClientConnectionRegistrationHandler;
-import ez.connection.server.ClientConnectionsServer;
+import ez.connection.server.SocketConnectionsServer;
+import ez.connection.server.WebsocketConnectionsServer;
 import ez.messaging.data.transport.MessageType;
 import ez.messaging.handlers.AckByReceiverHandler;
 import ez.messaging.handlers.GetHistoryHandler;
@@ -22,9 +23,11 @@ import ez.util.Logger;
 
 public class EZMessenger {
 
-    private ClientConnectionsServer server;
+    private SocketConnectionsServer socketServer;
 
-    private ClientConnectionsListener listener;
+    private WebsocketConnectionsServer websocketServer;
+
+    private ConnectionsListener listener;
 
     private ClientConnectionMessageHandler messagesHandler;
 
@@ -32,11 +35,11 @@ public class EZMessenger {
 
     private QueueServer queueServer;
 
-    private ClientsRegistry connections;
+    private ConnectionsRegistry connections;
 
     private MessageRouter messageRouter;
 
-    private EZMessenger(QueueServer queueServer, ClientsRegistry connectionsRegister, MessageRouter messageRouter) {
+    private EZMessenger(QueueServer queueServer, ConnectionsRegistry connectionsRegister, MessageRouter messageRouter) {
         this.queueServer = queueServer;
         this.connections = connectionsRegister;
         this.messageRouter = messageRouter;
@@ -45,10 +48,13 @@ public class EZMessenger {
     public void start() {
         connections.init();
 
-        server = new ClientConnectionsServer(queueServer.getRegistrationsQueue());
-        server.start();
+        socketServer = new SocketConnectionsServer(queueServer.getRegistrationsQueue());
+        socketServer.start();
 
-        listener = new ClientConnectionsListener(queueServer.getMessagesQueue(), connections);
+        websocketServer = new WebsocketConnectionsServer(queueServer.getRegistrationsQueue());
+        websocketServer.start();
+
+        listener = new ConnectionsListener(queueServer.getMessagesQueue(), connections);
         listener.start();
 
         messagesHandler = new ClientConnectionMessageHandler(queueServer.getMessagesQueue(), messageRouter);
@@ -62,7 +68,9 @@ public class EZMessenger {
         try {
             Logger.log("Stopping messenger ...");
 
-            server.stop();
+            socketServer.stop();
+
+            websocketServer.stop();
 
             listener.stop();
 
@@ -78,7 +86,7 @@ public class EZMessenger {
 
     public static class Configurator {
 
-        private ClientsRegistry clientRegistry;
+        private ConnectionsRegistry clientRegistry;
 
         private QueueServer queueServer;
 
@@ -89,7 +97,7 @@ public class EZMessenger {
 
         public static EZMessenger configureDefault() {
 
-            var clientsRegistry = new ClientsRegistry();
+            var clientsRegistry = new ConnectionsRegistry();
             var queueServer = new QueueServer();
 
             var userService = new UserService();
@@ -120,7 +128,7 @@ public class EZMessenger {
             return new Configurator();
         }
 
-        public Configurator withClientRegistry(ClientsRegistry clientRegistry) {
+        public Configurator withClientRegistry(ConnectionsRegistry clientRegistry) {
             this.clientRegistry = clientRegistry;
             return this;
         }

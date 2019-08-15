@@ -3,20 +3,20 @@ package ez.connection.queue.registration;
 import java.io.IOException;
 
 import ez.connection.client.ClientConnection;
-import ez.connection.client.ClientsRegistry;
+import ez.connection.registry.ConnectionsRegistry;
 import ez.util.Logger;
 
 public class ClientConnectionRegistrationHandler {
 
     private final ClientConnectionRegistrationQueue queue;
 
-    private ClientsRegistry connectionsRegister;
+    private ConnectionsRegistry connectionsRegister;
 
     private volatile Thread handlerThread;
 
     private volatile boolean stopped = false;
 
-    public ClientConnectionRegistrationHandler(ClientConnectionRegistrationQueue queue, ClientsRegistry connectionsRegister) {
+    public ClientConnectionRegistrationHandler(ClientConnectionRegistrationQueue queue, ConnectionsRegistry connectionsRegister) {
         this.queue = queue;
         this.connectionsRegister = connectionsRegister;
     }
@@ -34,7 +34,7 @@ public class ClientConnectionRegistrationHandler {
                     // TODO
                 }
             }
-        });
+        }, "ClientConnectionRegistrationHandler");
         handlerThread.start();
     }
 

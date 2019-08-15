@@ -1,7 +1,7 @@
 import ez.EZMessenger;
 import ez.EZMessenger.Configurator;
 
-public class Main {
+public class EntryPoint {
 
     public static void main(String[] args) throws InterruptedException {
 

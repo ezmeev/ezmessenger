@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import ez.EZMessenger;
-import ez.connection.client.ClientsRegistry;
+import ez.connection.registry.ConnectionsRegistry;
 import ez.connection.queue.QueueServer;
 import ez.fixtures.EZMessengerClient;
 import ez.messaging.data.StoredMessage;
@@ -40,8 +40,8 @@ public class ClientInitiatesConnectionIT {
     @Before
     public void setUp() {
 
-        ClientsRegistry clientsRegistry = new ClientsRegistry();
-        MessagePassingService messagePassingService = new MessagePassingService(clientsRegistry);
+        ConnectionsRegistry connectionsRegistry = new ConnectionsRegistry();
+        MessagePassingService messagePassingService = new MessagePassingService(connectionsRegistry);
         messageStoringService = new MessageStoringService();
 
         var userService = new UserService();
@@ -52,7 +52,7 @@ public class ClientInitiatesConnectionIT {
         var textMessageHandler = new TextMessageHandler(userService,
             messagePassingService, messageStoringService);
 
-        var helloHandler = new HelloMessageHandler(clientsRegistry);
+        var helloHandler = new HelloMessageHandler(connectionsRegistry);
 
         var messageRouter = new MessageRouter();
         messageRouter.addHandlerFor(MessageType.TextMessage, textMessageHandler);
@@ -60,7 +60,7 @@ public class ClientInitiatesConnectionIT {
         messageRouter.addHandlerFor(MessageType.GetHistoryMessage, getHistoryMessageHandler);
 
         messenger = EZMessenger.Configurator.create()
-            .withClientRegistry(clientsRegistry)
+            .withClientRegistry(connectionsRegistry)
             .withMessageRouter(messageRouter)
             .withQueueServer(new QueueServer())
             .build();

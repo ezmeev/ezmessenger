@@ -39,7 +39,7 @@ public class ClientConnectionMessageHandler {
                     // TODO
                 }
             }
-        });
+        }, "ClientConnectionMessageHandler");
         handlerThread.start();
     }
 

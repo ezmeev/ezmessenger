@@ -64,6 +64,13 @@ public class Message {
         return message;
     }
 
+    public static Message createByeMessage(String senderId) {
+        Message message = new Message();
+        message.setType(MessageType.ByeMessage);
+        message.setSenderId(senderId);
+        return message;
+    }
+
     public static Message createGetHistoryMessage(String senderId, String lastMessageId) {
         var payload = new GetHistoryMessagePayload();
         payload.setHistoryDepth(10);

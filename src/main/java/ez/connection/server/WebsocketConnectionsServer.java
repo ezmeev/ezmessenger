@@ -11,11 +11,11 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
-import ez.connection.client.ClientConnection;
+import ez.connection.client.websocket.WebsocketConnection;
 import ez.connection.queue.registration.ClientConnectionRegistrationQueue;
 import ez.util.Logger;
 
-public class ClientConnectionsServer {
+public class WebsocketConnectionsServer {
 
     private ServerSocketChannel socketChannel;
 
@@ -23,11 +23,9 @@ public class ClientConnectionsServer {
 
     private ClientConnectionRegistrationQueue registrationQueue;
 
-    private Thread acceptConnectionsThread;
-
     private volatile boolean stopped = false;
 
-    public ClientConnectionsServer(ClientConnectionRegistrationQueue registrationQueue) {
+    public WebsocketConnectionsServer(ClientConnectionRegistrationQueue registrationQueue) {
         this.registrationQueue = registrationQueue;
     }
 
@@ -38,11 +36,11 @@ public class ClientConnectionsServer {
 
             socketChannel = ServerSocketChannel.open();
             socketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
-            socketChannel.bind(new InetSocketAddress(8083));
+            socketChannel.bind(new InetSocketAddress(8084));
             socketChannel.configureBlocking(false);
             socketChannel.register(serverSocketSelector, SelectionKey.OP_ACCEPT);
 
-            acceptConnectionsThread = new Thread(() -> {
+            var acceptConnectionsThread = new Thread(() -> {
                 while (!stopped) {
                     try {
 
@@ -63,7 +61,11 @@ public class ClientConnectionsServer {
                             if (key.isAcceptable()) {
                                 SocketChannel clientChannel = socketChannel.accept();
 
-                                registrationQueue.enqueue(new ClientConnection(clientChannel));
+                                WebsocketConnection connection = new WebsocketConnection(clientChannel);
+
+                                connection.doHandshake();
+
+                                registrationQueue.enqueue(connection);
                             }
 
                             keyIterator.remove();
@@ -75,7 +77,7 @@ public class ClientConnectionsServer {
                         // TODO
                     }
                 }
-            });
+            }, "SocketConnectionsServer");
             acceptConnectionsThread.start();
 
         } catch (IOException e) {

@@ -1,4 +1,4 @@
-package ez.connection.client;
+package ez.connection.registry;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
@@ -7,9 +7,10 @@ import java.nio.channels.SocketChannel;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import ez.connection.client.ClientConnection;
 import ez.util.Logger;
 
-public class ClientsRegistry {
+public class ConnectionsRegistry {
 
     private Map<String, ClientConnection> clientConnections;
 

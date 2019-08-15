@@ -4,7 +4,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import ez.connection.client.ClientConnection;
-import ez.connection.client.ClientsRegistry;
+import ez.connection.registry.ConnectionsRegistry;
 import ez.connection.data.ConnectionMessage;
 import ez.messaging.data.User;
 import ez.messaging.data.transport.Message;
@@ -15,9 +15,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class MessagePassingService {
 
-    private ClientsRegistry connections;
+    private ConnectionsRegistry connections;
 
-    public MessagePassingService(ClientsRegistry connections) {
+    public MessagePassingService(ConnectionsRegistry connections) {
 
         this.connections = connections;
     }

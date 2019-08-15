@@ -3,6 +3,7 @@ package ez.messaging.data.transport;
 public enum MessageType {
 
     HelloMessage,
+    ByeMessage,
 
     GetHistoryMessage,
     HistoryMessage,

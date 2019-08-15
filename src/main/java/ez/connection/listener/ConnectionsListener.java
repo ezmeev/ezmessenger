@@ -1,4 +1,4 @@
-package ez.connection.client;
+package ez.connection.listener;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
@@ -6,23 +6,24 @@ import java.nio.channels.Selector;
 import java.util.Iterator;
 import java.util.Set;
 
-import ez.connection.data.ConnectionMessage;
+import ez.connection.client.ClientConnection;
 import ez.connection.queue.messages.ClientConnectionMessageQueue;
+import ez.connection.registry.ConnectionsRegistry;
 import ez.util.Logger;
 
-public class ClientConnectionsListener {
+public class ConnectionsListener {
 
     private ClientConnectionMessageQueue messageReadingQueue;
 
-    private ClientsRegistry connectionsRegister;
+    private ConnectionsRegistry connectionsRegister;
 
     private volatile Thread listenerThread;
 
     private volatile boolean stopped = false;
 
-    public ClientConnectionsListener(
+    public ConnectionsListener(
         ClientConnectionMessageQueue messageReadingQueue,
-        ClientsRegistry connectionsRegister
+        ConnectionsRegistry connectionsRegister
     ) {
         this.messageReadingQueue = messageReadingQueue;
         this.connectionsRegister = connectionsRegister;
@@ -59,9 +60,7 @@ public class ClientConnectionsListener {
 
                             ClientConnection clientConnection = (ClientConnection) key.attachment();
 
-                            ConnectionMessage connectionMessage = clientConnection.readMessage();
-
-                            messageReadingQueue.enqueue(connectionMessage);
+                            messageReadingQueue.enqueue(clientConnection.readMessage());
                         }
 
                         keyIterator.remove();
@@ -72,7 +71,7 @@ public class ClientConnectionsListener {
                     // TODO
                 }
             }
-        });
+        }, "ClientConnectionsListener");
 
         listenerThread.start();
     }
