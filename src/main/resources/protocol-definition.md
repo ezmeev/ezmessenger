@@ -1,5 +1,4 @@
 # EZ Messenger protocol
-Bla-bla-bla intent bla-bla-bla reliable bla-bla-bla scalable bla-bla-bla will be implemented.
 
 ## client (re-)initiating connection
 1. [client] -> [Hello]      -> [server]

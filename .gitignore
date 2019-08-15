@@ -8,3 +8,4 @@ build
 .idea/
 *.swp
 /.vscode
+/src/main/resources/plan.txt
