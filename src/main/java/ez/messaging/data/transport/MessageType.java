@@ -16,9 +16,4 @@ public enum MessageType {
     Received,
     AckByReceiverMessage,
     Read,
-
-//    InitMessage,
-//    TextMessage,
-//    MessageAcknowledgedByServer,
-//    MessageAcknowledgedByClient,
 }

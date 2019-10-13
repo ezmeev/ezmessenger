@@ -9,6 +9,7 @@ import ez.connection.server.SocketConnectionsServer;
 import ez.connection.server.WebsocketConnectionsServer;
 import ez.messaging.data.transport.MessageType;
 import ez.messaging.handlers.AckByReceiverHandler;
+import ez.messaging.handlers.ByeMessageHandler;
 import ez.messaging.handlers.GetHistoryHandler;
 import ez.messaging.handlers.HelloMessageHandler;
 import ez.messaging.handlers.MessageRouter;
@@ -35,18 +36,18 @@ public class EZMessenger {
 
     private QueueServer queueServer;
 
-    private ConnectionsRegistry connections;
+    private ConnectionsRegistry connectionsRegistry;
 
     private MessageRouter messageRouter;
 
     private EZMessenger(QueueServer queueServer, ConnectionsRegistry connectionsRegister, MessageRouter messageRouter) {
         this.queueServer = queueServer;
-        this.connections = connectionsRegister;
+        this.connectionsRegistry = connectionsRegister;
         this.messageRouter = messageRouter;
     }
 
     public void start() {
-        connections.init();
+        connectionsRegistry.init();
 
         socketServer = new SocketConnectionsServer(queueServer.getRegistrationsQueue());
         socketServer.start();
@@ -54,14 +55,16 @@ public class EZMessenger {
         websocketServer = new WebsocketConnectionsServer(queueServer.getRegistrationsQueue());
         websocketServer.start();
 
-        listener = new ConnectionsListener(queueServer.getMessagesQueue(), connections);
+        listener = new ConnectionsListener(queueServer.getMessagesQueue(), connectionsRegistry);
         listener.start();
 
         messagesHandler = new ClientConnectionMessageHandler(queueServer.getMessagesQueue(), messageRouter);
         messagesHandler.start();
 
-        registrationsHandler = new ClientConnectionRegistrationHandler(queueServer.getRegistrationsQueue(), connections);
+        registrationsHandler = new ClientConnectionRegistrationHandler(queueServer.getRegistrationsQueue(), connectionsRegistry);
         registrationsHandler.start();
+
+        Logger.log("Messenger started ...");
     }
 
     public void stop() {
@@ -111,11 +114,13 @@ public class EZMessenger {
             var getHistoryHandler = new GetHistoryHandler(userService, messagePassingService, messageStoringService);
             var helloHandler = new HelloMessageHandler(clientsRegistry);
             var readHandler = new ReadHandler(userService, messagePassingService);
+            var byeMessageHandler = new ByeMessageHandler(clientsRegistry);
 
             var messageRouter = new MessageRouter();
             messageRouter.addHandlerFor(MessageType.AckByReceiverMessage, ackByReceiverHandler);
             messageRouter.addHandlerFor(MessageType.GetHistoryMessage, getHistoryHandler);
             messageRouter.addHandlerFor(MessageType.HelloMessage, helloHandler);
+            messageRouter.addHandlerFor(MessageType.ByeMessage, byeMessageHandler);
             messageRouter.addHandlerFor(MessageType.TextMessage, textMessageHandler);
             messageRouter.addHandlerFor(MessageType.StartTyping, startTypingHandler);
             messageRouter.addHandlerFor(MessageType.StopTyping, stopTypingHandler);

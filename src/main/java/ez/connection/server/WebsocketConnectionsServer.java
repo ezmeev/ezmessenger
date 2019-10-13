@@ -17,6 +17,8 @@ import ez.util.Logger;
 
 public class WebsocketConnectionsServer {
 
+    private static final int port = 8084;
+
     private ServerSocketChannel socketChannel;
 
     private Selector serverSocketSelector;
@@ -36,7 +38,7 @@ public class WebsocketConnectionsServer {
 
             socketChannel = ServerSocketChannel.open();
             socketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
-            socketChannel.bind(new InetSocketAddress(8084));
+            socketChannel.bind(new InetSocketAddress(port));
             socketChannel.configureBlocking(false);
             socketChannel.register(serverSocketSelector, SelectionKey.OP_ACCEPT);
 
@@ -79,6 +81,8 @@ public class WebsocketConnectionsServer {
                 }
             }, "SocketConnectionsServer");
             acceptConnectionsThread.start();
+
+            Logger.log("Client connections server is listening on " + port);
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -64,10 +64,9 @@ public class Message {
         return message;
     }
 
-    public static Message createByeMessage(String senderId) {
+    public static Message createByeMessage() {
         Message message = new Message();
         message.setType(MessageType.ByeMessage);
-        message.setSenderId(senderId);
         return message;
     }
 

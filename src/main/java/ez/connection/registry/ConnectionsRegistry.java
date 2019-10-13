@@ -16,6 +16,8 @@ public class ConnectionsRegistry {
 
     private Selector clientsSelector;
 
+    // FIXME it's confusing to have following two methods here
+    // as they are from different "level" and not really concerned about connection, they are more about clients
     public void registerConnection(String identity, ClientConnection clientConnection) {
         clientConnections.put(identity, clientConnection);
     }
@@ -28,6 +30,8 @@ public class ConnectionsRegistry {
         return new ConcurrentHashMap<>(clientConnections);
     }
 
+    /////
+
     public void registerChannel(ClientConnection connection) throws IOException {
         Logger.log("[ClientsRegistry] Registering connection");
 
@@ -36,6 +40,15 @@ public class ConnectionsRegistry {
         clientChannel.register(clientsSelector, SelectionKey.OP_READ, connection);
 
         clientsSelector.wakeup();
+    }
+
+    public void unregisterChannel(ClientConnection connection) {
+        try {
+            connection.getChannel().close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            // TODO
+        }
     }
 
     public Selector getClientsSelector() {

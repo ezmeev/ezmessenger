@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import ez.connection.client.ClientConnection;
+import ez.connection.data.ConnectionMessage;
 import ez.connection.queue.messages.ClientConnectionMessageQueue;
 import ez.connection.registry.ConnectionsRegistry;
 import ez.util.Logger;
@@ -39,36 +40,46 @@ public class ConnectionsListener {
 
                 try {
 
-                    Logger.log("[ClientConnectionsListener] Waiting for client's data ... ");
+                    Logger.debug("[ClientConnectionsListener] Waiting for client's data ... ");
 
-                    clientsSelector.select();
+                    int selected = clientsSelector.select();
 
                     if (!clientsSelector.isOpen()) {
                         Logger.log("[ClientConnectionsListener] Quiting ...");
                         return;
                     }
 
+                    if (selected == 0) {
+                        continue;
+                    }
+
                     Set<SelectionKey> selectedKeys = clientsSelector.selectedKeys();
 
                     Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
+
+                    Logger.debug("[ClientConnectionsListener] Keys selected=[" + selectedKeys.size() + "]");
 
                     while (keyIterator.hasNext()) {
 
                         SelectionKey key = keyIterator.next();
 
                         if (key.isReadable()) {
-
                             ClientConnection clientConnection = (ClientConnection) key.attachment();
-
-                            messageReadingQueue.enqueue(clientConnection.readMessage());
+                            if (clientConnection.isAlive()) {
+                                Logger.debug("[ClientConnectionsListener] Reading ... ");
+                                ConnectionMessage message = clientConnection.readMessage();
+                                Logger.debug("[ClientConnectionsListener] Read: " + message.getDataAsString());
+                                messageReadingQueue.enqueue(message);
+                            }
                         }
 
                         keyIterator.remove();
                     }
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    // TODO
+                } catch (Exception e) {
+                    Logger.debug("[ClientConnectionsListener][ERROR], "
+                        + "type=[" + e.getClass().getName() + "], "
+                        + "message=[" + e.getMessage() + "]");
                 }
             }
         }, "ClientConnectionsListener");

@@ -1,5 +1,14 @@
 class EZMessenger {
 
+    // ?. senderId & recepientId are same level ids? If I'm a malicious client,
+    //    then I can use recipientId as my sednerId unless we pass some kind of
+    //    token/password with senderId. What if I will use JWT(senderId+some secret issued by server) instead of senderId?
+
+    // TODO
+    // 1. login - as result this client will receive senderId
+    // 2. get list of known users - as result this client will get users with their ids
+    // 3.
+
     connect() {
         EZMessenger.logStatus('Connecting ...');
 
